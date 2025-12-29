@@ -1,0 +1,12 @@
+import express from 'express';
+const app=express();
+import userRouter from './src/routes/user.router.js';
+import videoRouter from './src/routes/video.route.js';
+import commentRouter from './src/routes/comment.route.js';
+import cookieParser from 'cookie-parser';
+app.use(express.json());
+app.use(cookieParser());
+app.use('/api/v2/user',userRouter);
+app.use('/api/v2/video',videoRouter);
+app.use('/api/v2/comment',commentRouter);
+export {app};
