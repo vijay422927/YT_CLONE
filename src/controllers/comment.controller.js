@@ -86,7 +86,7 @@ const getVideoComments=async (req,res) => {
     {
         throw new Apierror(400,"invalid videoId")
     }
-
+    
     return res.status(200).json(new Apiresponse(200,comments,"get all remotes"));
 };
 
