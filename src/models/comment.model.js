@@ -15,6 +15,11 @@ const commentSchema=new Schema(
         {
             type:Schema.Types.ObjectId,
             ref:"User"
+        },
+        likes:
+        {
+            type:Number,
+            default:0
         }
     },
     {
