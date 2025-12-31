@@ -9,7 +9,7 @@ const toggleSubscribe = async (req, res) => {
     const { channelId } = req.query;
     const userId = req.user._id;
 
-    if (channelId === userId) {
+    if (channelId === userId.toString()) {
         throw new Apierror(400, "you are not allow to subscribe");
     }
     const existSub = await Subscribe.findOne({channel:channelId,subscriber:userId});
@@ -39,7 +39,7 @@ const getAllSubscribed = async (req, res) => {
         }
     );
     if (!count) {
-        throw new Apierror(500, "no subscriptions");
+        return res.status(200).json(new Apiresponse(200, {}, "NO SUBSCRIBED"));
     }
 
     return res.status(200).json(new Apiresponse(200, count, "gett all subscribed"));
@@ -61,3 +61,4 @@ export {
     getAllSubscribed,
     getSubscribers
 };
+//694f8523b3057fd870c13d72
