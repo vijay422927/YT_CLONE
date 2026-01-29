@@ -11,6 +11,6 @@ router.post('/changePassword',verifyJwt,changePassword);
 router.post('/changeAvatar',uploads.fields([{name:"avatar",maxCount:1}]),verifyJwt,changeAvatar);
 router.post('/changeCoverImage',uploads.fields([{name:"coverImage",maxCount:1}]),verifyJwt,changeCoverImage);
 router.post('/genarateAcessToken',refreshAccessToken);
-router.post('/currentUser',verifyJwt,getCurrentUser);
+router.get('/currentUser',verifyJwt,getCurrentUser);
 router.post('/updateDetails',verifyJwt,updateDetails);
 export default router;

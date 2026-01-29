@@ -6,6 +6,8 @@ import { Apiresponse } from "../utils/Apiresponse.js";
 import { Video } from "../models/video.model.js";
 import { Comment } from "../models/comment.model.js";
 
+import redisClient from "../services/redis.js";
+
 
 const toggleLikeVideo = async (req, res) => {
     const user = req.user._id;
@@ -47,10 +49,17 @@ const toggleLikeVideo = async (req, res) => {
 
 const getAllLikedVideos=async (req,res) => {
        const userId=req.user._id;
+       const cachkey=`liked:by:${userId}`;
+       const cacheVideos=await redisClient.get(cachkey);
+       if(cacheVideos)
+       {
+        return res.status(200).json(new Apiresponse(200,JSON.parse(cacheVideos),"get all liked videos"));
+       }
        const videos=await Likes.findOne({likedBy:userId}).select("video");
        if(!videos){
          return res.status(200).json(new Apiresponse(200,{},"No videos found"));
        }
+       await redisClient.setEx(cachkey,60,JSON.stringify(videos));
        return res.status(200).json(new Apiresponse(200,videos,"get all liked videos"));
 };
 

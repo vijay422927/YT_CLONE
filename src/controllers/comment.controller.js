@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import { AsynchHanadler } from "../utils/Asynchhandler.js";
 import { Apierror } from "../utils/Apierror.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
+import redisClient from "../services/redis.js";
 
 const addComment=async (req,res) => {
     const {videoId}=req.query;
@@ -81,12 +82,18 @@ const deleteComment=async (req,res) => {
 
 const getVideoComments=async (req,res) => {
     const {videoId}=req.query;
+    const cachkey=`video:${videoId}`;
+    const cachComments=await redisClient.get(cachkey);
+    if(cachComments)
+    {
+        return res.status(200).json(new Apiresponse(200,JSON.parse(cachComments),"get all commments"));
+    }
     const comments=await Comment.find({video:videoId}).select("content owner");
     if(!comments)
     {
         throw new Apierror(400,"invalid videoId")
     }
-    
+    await redisClient.setEx(cachkey,60,JSON.stringify(comments));
     return res.status(200).json(new Apiresponse(200,comments,"get all remotes"));
 };
 

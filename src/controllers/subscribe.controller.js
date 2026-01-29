@@ -4,6 +4,7 @@ import { Apiresponse } from "../utils/Apiresponse.js";
 import { AsynchHanadler } from "../utils/Asynchhandler.js";
 import User from "../models/user.model.js";
 import { Subscribe } from "../models/subscription.model.js";
+import redisClient from "../services/redis.js";
 
 const toggleSubscribe = async (req, res) => {
     const { channelId } = req.query;
@@ -33,6 +34,12 @@ const toggleSubscribe = async (req, res) => {
 
 const getAllSubscribed = async (req, res) => {
     const userId = req.user._id;
+    const cachkey=`sub:${userId}`;
+    const cachcount=await redisClient.get(cachkey);
+    if(cachcount)
+    {
+        return res.status(200).json(new Apiresponse(200,JSON.parse(cachcount)));
+    }
     const count = await Subscribe.countDocuments(
         {
             subscriber: userId
@@ -41,7 +48,7 @@ const getAllSubscribed = async (req, res) => {
     if (!count) {
         return res.status(200).json(new Apiresponse(200, {}, "NO SUBSCRIBED"));
     }
-
+    await redisClient.setEx(cachkey,60,JSON.stringify(count));
     return res.status(200).json(new Apiresponse(200, count, "gett all subscribed"));
 };
 

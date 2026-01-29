@@ -5,6 +5,7 @@ import { AsynchHanadler } from "../utils/Asynchhandler.js";
 import { Apierror } from "../utils/Apierror.js";
 import { Apiresponse } from "../utils/Apiresponse.js";
 import { uploadCloudinary } from "../utils/cloudinary.js";
+import redisClient from "../services/redis.js";
 
 
 const publishVideo = async (req, res) => {
@@ -58,12 +59,17 @@ const publishVideo = async (req, res) => {
 
 const getAllVideos = async (req, res) => {
     const userId = req.user._id;
-
+    const cachkey=`videos:all:${userId}`;
+    const cacheVideos=await redisClient.get(cachkey);
+    if(cacheVideos)
+    {
+        return res.status(200).json(new Apiresponse(200,JSON.parse(cacheVideos),"videos get succesfully"));
+    }
     const docs = await Video.find({ owner: userId }).select("videoFile thumbNail duration likes");
     if (!docs) {
         throw new Apierror(402, "unauthorized or invalid user");
     }
-
+    await redisClient.setEx(cachkey,60,JSON.stringify(docs));
     return res.status(200).json(new Apiresponse(200, docs, "gett all videos"));
 };
 

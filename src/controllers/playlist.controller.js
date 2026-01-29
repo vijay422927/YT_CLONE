@@ -4,6 +4,7 @@ import { Apiresponse } from "../utils/Apiresponse.js";
 import { AsynchHanadler } from "../utils/Asynchhandler.js";
 import { Video } from "../models/video.model.js";
 import User from "../models/user.model.js";
+import redisClient from "../services/redis.js";
 
 const createPlayList = async (req, res) => {
     const { PlayListname, description } = req.body;
@@ -92,11 +93,16 @@ const deleteVideo = async (req, res) => {
 
 const getUserPlayList=async (req,res) => {
     const userId=req.user._id;
+    const cachkey=`playlist:${userId}`;
+    const cachPlaylist=await redisClient.get(cachkey);
+    if(cachPlaylist){
+        return res.status(200).json(new Apiresponse(200,JSON.parse(cachPlaylist),"get playalist"));
+    }
     const playlists=await PlayList.findOne({owner:userId});
     if(!playlists){
         throw new Apierror(400,"playlist not found")
     }
-
+    await redisClient.setEx(cachkey,60,JSON.stringify(playlists));
     return res.status(200).json(new Apiresponse(200,playlists,"gett all playlists"));
 };
 
